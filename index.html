@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Size-Up Manager Decision Tool</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7f8fb;
+    color: #1f2937;
+  }
+
+  .card {
+    max-width: 850px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #dfe3e8;
+    border-radius: 12px;
+    padding: 22px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    margin: 7px 0 20px;
+    color: #667085;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .notice {
+    padding: 11px 13px;
+    margin-bottom: 20px;
+    background: #f3f6fb;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field {
+    margin-bottom: 15px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  select {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 10px;
+    border: 1px solid #cfd4dc;
+    border-radius: 7px;
+    background: #fff;
+    font-size: 14px;
+    color: #1f2937;
+  }
+
+  select:focus {
+    outline: 2px solid #9dbcf9;
+    border-color: #6d9df5;
+  }
+
+  .conditional {
+    display: none;
+    margin-top: 8px;
+    padding: 15px;
+    border: 1px solid #e0e4e9;
+    background: #fafbfc;
+    border-radius: 8px;
+  }
+
+  .conditional-title {
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  .result {
+    display: none;
+    margin-top: 20px;
+    border-radius: 10px;
+    padding: 18px;
+    border: 2px solid #d6dae0;
+  }
+
+  .result-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    color: #667085;
+    margin-bottom: 6px;
+  }
+
+  .result-title {
+    font-size: 21px;
+    font-weight: 800;
+    margin-bottom: 9px;
+  }
+
+  .result-message {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .result-note {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #dfe3e8;
+    color: #535b68;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .approve {
+    background: #f1f9f3;
+    border-color: #80bb8b;
+  }
+
+  .negotiate {
+    background: #faf7ee;
+    border-color: #c9a95d;
+  }
+
+  .reject {
+    background: #fff3f3;
+    border-color: #d98b8b;
+  }
+
+  .review {
+    background: #f7f3ff;
+    border-color: #a98bd7;
+  }
+
+  .warning {
+    background: #fff8eb;
+    border-color: #d2a34c;
+  }
+
+  @media (max-width: 650px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card {
+      padding: 16px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <h1>Manager Decision Tool</h1>
+
+  <div class="subtitle">
+    Reselect the case values entered above to view the applicable Approval Matrix recommendation.
+  </div>
+
+  <div class="notice">
+    <strong>Manager Confidence is a gate.</strong>
+    High and Moderate confidence cases may proceed through the Approval Matrix.
+    Low or Unable to Determine cases require further review.
+  </div>
+
+  <div class="grid">
+
+    <div class="field">
+      <label for="confidence">Manager Confidence</label>
+      <select id="confidence" onchange="calculate()">
+        <option value="">Select...</option>
+        <option value="high">
+          High — Genuine and consistent
+        </option>
+        <option value="moderate">
+          Moderate — Appears genuine, minor concerns
+        </option>
+        <option value="low">
+          Low — Significant concerns
+        </option>
+        <option value="unable">
+          Unable to Determine
+        </option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="severity">Severity Score</label>
+      <select id="severity" onchange="calculate()">
+        <option value="">Select...</option>
+        <option value="1">
+          Level 1 — Critical and Non-Negotiable
+        </option>
+        <option value="2">
+          Level 2 — Serious and Mostly Non-Negotiable
+        </option>
+        <option value="3">
+          Level 3 — Significant but Negotiable
+        </option>
+        <option value="4">
+          Level 4 — Mild and Negotiable
+        </option>
+        <option value="5">
+          Level 5 — Low Severity and Convenience Based
+        </option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="track">Employee Track Record</label>
+      <select id="track" onchange="calculate()">
+        <option value="">Select...</option>
+        <option value="green">Green</option>
+        <option value="yellow">Yellow</option>
+        <option value="orange">Orange</option>
+        <option value="red">Red</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="coverage">Quick Coverage Score</label>
+      <select id="coverage" onchange="calculate()">
+        <option value="">Select...</option>
+        <option value="0">Excess</option>
+        <option value="1">1 — Ideal</option>
+        <option value="2">2 — Optimized</option>
+        <option value="3">3 — Fair</option>
+        <option value="4">4 — Poor</option>
+        <option value="5">5 — Critical</option>
+      </select>
+    </div>
+
+  </div>
+
+
+  <!-- LEVEL 2 SPECIAL RULE -->
+
+  <div id="level2Special" class="conditional">
+
+    <div class="conditional-title">
+      Additional Level 2 checks required
+    </div>
+
+    <div class="field">
+      <label for="extraCoverage">
+        Can any additional coverage be found?
+      </label>
+
+      <select id="extraCoverage" onchange="calculate()">
+        <option value="">Select...</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="abusePattern">
+        Does the employee have a clear documented leave-abuse pattern?
+      </label>
+
+      <select id="abusePattern" onchange="calculate()">
+        <option value="">Select...</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+
+  </div>
+
+
+  <!-- LEVEL 4 CONDITIONAL COVERAGE RULE -->
+
+  <div id="level4Special" class="conditional">
+
+    <div class="conditional-title">
+      Additional coverage check required
+    </div>
+
+    <div class="field">
+      <label for="level4Coverage">
+        Is additional coverage available?
+      </label>
+
+      <select id="level4Coverage" onchange="calculate()">
+        <option value="">Select...</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+
+  </div>
+
+
+  <!-- RESULT -->
+
+  <div id="result" class="result">
+
+    <div class="result-label">
+      APPROVAL MATRIX RECOMMENDATION
+    </div>
+
+    <div id="resultTitle" class="result-title"></div>
+
+    <div id="resultMessage" class="result-message"></div>
+
+    <div id="resultNote" class="result-note"></div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   MATRIX DATA
+   ========================================================= */
+
+
+const level3 = {
+
+  "0": {
+    green: "approve",
+    yellow: "approve",
+    orange: "approve",
+    red: "approveVerify"
+  },
+
+  "1": {
+    green: "approve",
+    yellow: "approve",
+    orange: "approve",
+    red: "approveVerify"
+  },
+
+  "2": {
+    green: "approve",
+    yellow: "approve",
+    orange: "approve",
+    red: "approveVerify"
+  },
+
+  "3": {
+    green: "approve",
+    yellow: "approve",
+    orange: "approveVerify",
+    red: "approveVerify"
+  },
+
+  "4": {
+    green: "approve",
+    yellow: "approveVerify",
+    orange: "negotiate",
+    red: "negotiate"
+  },
+
+  "5": {
+    green: "negotiate",
+    yellow: "negotiate",
+    orange: "negotiate",
+    red: "negotiate"
+  }
+};
+
+
+const level4 = {
+
+  "0": {
+    green: "approve",
+    yellow: "approve",
+    orange: "approve",
+    red: "approveProof"
+  },
+
+  "1": {
+    green: "approve",
+    yellow: "approve",
+    orange: "approveProof",
+    red: "approveProof"
+  },
+
+  "2": {
+    green: "approve",
+    yellow: "approveProof",
+    orange: "approveProof",
+    red: "negotiate"
+  },
+
+  "3": {
+    green: "approveProof",
+    yellow: "negotiate",
+    orange: "negotiate",
+    red: "negotiate"
+  },
+
+  "4": {
+    green: "negotiate",
+    yellow: "negotiate",
+    orange: "negotiate",
+    red: "conditionalCoverage"
+  },
+
+  "5": {
+    green: "conditionalCoverage",
+    yellow: "conditionalCoverage",
+    orange: "conditionalCoverage",
+    red: "reject"
+  }
+};
+
+
+const level5 = {
+
+  "0": {
+    green: "approveGenuine",
+    yellow: "approveGenuine",
+    orange: "approveGenuine",
+    red: "negotiate"
+  },
+
+  "1": {
+    green: "approveGenuine",
+    yellow: "approveGenuine",
+    orange: "negotiate",
+    red: "reject"
+  },
+
+  "2": {
+    green: "approveGenuine",
+    yellow: "negotiate",
+    orange: "negotiate",
+    red: "reject"
+  },
+
+  "3": {
+    green: "negotiate",
+    yellow: "reject",
+    orange: "reject",
+    red: "reject"
+  },
+
+  "4": {
+    green: "reject",
+    yellow: "reject",
+    orange: "reject",
+    red: "reject"
+  },
+
+  "5": {
+    green: "reject",
+    yellow: "reject",
+    orange: "reject",
+    red: "reject"
+  }
+};
+
+
+/* =========================================================
+   CALCULATOR
+   ========================================================= */
+
+
+function calculate() {
+
+  const confidence =
+    document.getElementById("confidence").value;
+
+  const severity =
+    document.getElementById("severity").value;
+
+  const track =
+    document.getElementById("track").value;
+
+  const coverage =
+    document.getElementById("coverage").value;
+
+
+  const level2Special =
+    document.getElementById("level2Special");
+
+  const level4Special =
+    document.getElementById("level4Special");
+
+
+  level2Special.style.display = "none";
+  level4Special.style.display = "none";
+
+
+  /* -----------------------------------------
+     CONFIDENCE GATE
+     ----------------------------------------- */
+
+  if (confidence === "low") {
+
+    showResult(
+      "review",
+      "🟡 NEEDS FURTHER REVIEW",
+      "The manager has significant concerns about the accuracy or validity of the request.",
+      "Do not use the normal Approval Matrix to finalize this case. Submit it for further review."
+    );
+
+    return;
+  }
+
+
+  if (confidence === "unable") {
+
+    showResult(
+      "review",
+      "🟡 NEEDS FURTHER REVIEW",
+      "The manager is unable to determine whether the request is sufficiently reliable to finalize.",
+      "Do not use the normal Approval Matrix to finalize this case. Submit it for further review."
+    );
+
+    return;
+  }
+
+
+  if (!confidence || !severity || !track || coverage === "") {
+
+    hideResult();
+    return;
+  }
+
+
+  let code = "";
+
+
+  /* -----------------------------------------
+     LEVEL 1
+     ----------------------------------------- */
+
+  if (severity === "1") {
+
+    code = "level1";
+
+  }
+
+
+  /* -----------------------------------------
+     LEVEL 2
+     ----------------------------------------- */
+
+  else if (severity === "2") {
+
+    if (coverage === "4" && track === "red") {
+
+      code = "approveVerification";
+
+    }
+
+    else if (coverage === "5" && track === "red") {
+
+      level2Special.style.display = "block";
+
+      const extraCoverage =
+        document.getElementById("extraCoverage").value;
+
+      const abusePattern =
+        document.getElementById("abusePattern").value;
+
+
+      if (!extraCoverage || !abusePattern) {
+
+        showResult(
+          "warning",
+          "⚠️ ADDITIONAL INFORMATION REQUIRED",
+          "This combination has a special Level 2 rule.",
+          "Complete both additional questions above to receive the final recommendation."
+        );
+
+        return;
+      }
+
+
+      if (
+        extraCoverage === "no" &&
+        abusePattern === "yes"
+      ) {
+
+        code = "level2Negotiate";
+
+      }
+
+      else {
+
+        code = "approveVerification";
+
+      }
+
+    }
+
+    else {
+
+      code = "approve";
+
+    }
+
+  }
+
+
+  /* -----------------------------------------
+     LEVEL 3
+     ----------------------------------------- */
+
+  else if (severity === "3") {
+
+    code = level3[coverage][track];
+
+  }
+
+
+  /* -----------------------------------------
+     LEVEL 4
+     ----------------------------------------- */
+
+  else if (severity === "4") {
+
+    code = level4[coverage][track];
+
+
+    if (code === "conditionalCoverage") {
+
+      level4Special.style.display = "block";
+
+      const additionalCoverage =
+        document.getElementById("level4Coverage").value;
+
+
+      if (!additionalCoverage) {
+
+        showResult(
+          "warning",
+          "⚠️ ADDITIONAL INFORMATION REQUIRED",
+          "This matrix result depends on whether additional coverage can be found.",
+          "Complete the additional coverage question above."
+        );
+
+        return;
+      }
+
+
+      if (additionalCoverage === "yes") {
+
+        code = "negotiate";
+
+      }
+
+      else {
+
+        code = "rejectCoverage";
+
+      }
+
+    }
+
+  }
+
+
+  /* -----------------------------------------
+     LEVEL 5
+     ----------------------------------------- */
+
+  else if (severity === "5") {
+
+    code = level5[coverage][track];
+
+  }
+
+
+  displayRecommendation(code, confidence);
+
+}
+
+
+/* =========================================================
+   RESULT OUTPUT
+   ========================================================= */
+
+
+function displayRecommendation(code, confidence) {
+
+  let moderateNote = "";
+
+  if (confidence === "moderate") {
+
+    moderateNote =
+      "Manager Confidence is Moderate. Make sure the concern or uncertainty is documented in the Manager Review so HR can review it.";
+
+  }
+
+
+  const outputs = {
+
+
+    approve: {
+
+      style: "approve",
+
+      title: "✅ APPROVE",
+
+      message:
+        "The Approval Matrix indicates that the request should be approved.",
+
+      note:
+        moderateNote
+    },
+
+
+    level1: {
+
+      style: "approve",
+
+      title: "✅ APPROVE — NON-NEGOTIABLE",
+
+      message:
+        "A confirmed Level 1 case is automatically approved regardless of Coverage Score or Employee Track Record.",
+
+      note:
+        "Coverage must be arranged around the employee. Do not negotiate or reject after confirming that the situation qualifies as Level 1."
+    },
+
+
+    approveVerify: {
+
+      style: "approve",
+
+      title: "✅ APPROVE — IMMEDIATE VERIFICATION REQUIRED",
+
+      message:
+        "The Approval Matrix supports approval, but the case requires immediate verification.",
+
+      note:
+        "Record the manager review normally and ensure the verification requirement is clearly flagged for HR."
+    },
+
+
+    approveVerification: {
+
+      style: "approve",
+
+      title: "✅ APPROVE — FLAG FOR VERIFICATION",
+
+      message:
+        "The Approval Matrix supports approval, but the circumstances should be specifically flagged for verification.",
+
+      note:
+        "HR should review the applicable verification or documentation requirements."
+    },
+
+
+    approveProof: {
+
+      style: "approve",
+
+      title: "✅ APPROVE — PROOF / VERIFICATION REQUIRED",
+
+      message:
+        "The Approval Matrix supports approval, subject to appropriate proof or verification.",
+
+      note:
+        "Record the manager decision and clearly flag the verification requirement for HR."
+    },
+
+
+    approveGenuine: {
+
+      style: "approve",
+
+      title: "✅ APPROVE",
+
+      message:
+        "The Approval Matrix supports approval because the request has passed the Manager Confidence gate.",
+
+      note:
+        moderateNote
+    },
+
+
+    negotiate: {
+
+      style: "negotiate",
+
+      title: "🔄 NEGOTIATE / MODIFY",
+
+      message:
+        "Attempt a shift swap, reschedule, partial shift, or another reasonable adjustment before finalizing the request.",
+
+      note:
+        moderateNote
+    },
+
+
+    level2Negotiate: {
+
+      style: "negotiate",
+
+      title: "🔄 NEGOTIATE / MODIFY",
+
+      message:
+        "Negotiation is permitted because no additional coverage can be found AND the employee has a clear documented leave-abuse pattern.",
+
+      note:
+        "Escalate the case if you are unsure how to proceed."
+    },
+
+
+    reject: {
+
+      style: "reject",
+
+      title: "❌ REJECT",
+
+      message:
+        "The Approval Matrix indicates rejection for this combination of Severity Score, Track Record, and Coverage Score.",
+
+      note:
+        moderateNote
+    },
+
+
+    rejectCoverage: {
+
+      style: "reject",
+
+      title: "❌ REJECT",
+
+      message:
+        "The Approval Matrix permits rejection because no additional coverage is available.",
+
+      note:
+        moderateNote
+    }
+
+  };
+
+
+  const output = outputs[code];
+
+
+  if (!output) {
+
+    showResult(
+      "review",
+      "🟡 NEEDS FURTHER REVIEW",
+      "The calculator could not determine a valid Approval Matrix result.",
+      "Do not finalize the request until the case has been reviewed."
+    );
+
+    return;
+
+  }
+
+
+  showResult(
+    output.style,
+    output.title,
+    output.message,
+    output.note
+  );
+
+}
+
+
+/* =========================================================
+   DISPLAY HELPERS
+   ========================================================= */
+
+
+function showResult(style, title, message, note) {
+
+  const result =
+    document.getElementById("result");
+
+
+  result.className =
+    "result " + style;
+
+
+  document.getElementById("resultTitle").textContent =
+    title;
+
+
+  document.getElementById("resultMessage").textContent =
+    message;
+
+
+  const noteBox =
+    document.getElementById("resultNote");
+
+
+  noteBox.textContent =
+    note || "";
+
+
+  noteBox.style.display =
+    note ? "block" : "none";
+
+
+  result.style.display =
+    "block";
+
+}
+
+
+function hideResult() {
+
+  document.getElementById("result").style.display =
+    "none";
+
+}
+
+</script>
+
+</body>
+</html>
